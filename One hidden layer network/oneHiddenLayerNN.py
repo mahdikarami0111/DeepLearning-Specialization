@@ -30,9 +30,10 @@ class Model:
 
         return W1, b1, W2, b2
 
-    def forward_propagate(self):
+    def forward_propagate(self, X=None):
         W1, b1, W2, b2 = self.parameters
-        X = self.train_set[0]
+        if X is None:
+            X = self.train_set[0]
         Z1 = np.dot(W1, X) + b1
         A1 = np.tanh(Z1)
 
@@ -90,21 +91,19 @@ class Model:
                 print("Cost after iteration %i: %f" % (i, cost))
         return self.parameters
 
+    def predict(self, X):
+        cache = self.forward_propagate(X)
+        predictions = (cache[3] > 0.5)
+
+        return predictions
 
 
-# X, Y = load_planar_dataset()
-X, Y = nn_model_test_case()
-print(X.shape)
-model = Model(2, 4, 1, (X, Y))
-model.train(1.02, 10000, True)
 
-parameters = model.parameters
-W1 = parameters[0]
-b1 = parameters[1]
-W2 = parameters[2]
-b2 = parameters[3]
-
-print("W1 = " + str(parameters[0]))
-print("b1 = " + str(parameters[1]))
-print("W2 = " + str(parameters[2]))
-print("b2 = " + str(parameters[3]))
+X, Y = load_planar_dataset()
+model = Model(X.shape[0], 5, Y.shape[0], (X, Y))
+model.train(0.5, 10000, True)
+plot_decision_boundary(lambda x: model.predict(x.T), X, Y)
+plt.title("Decision Boundary for hidden layer size " + str(4))
+plt.show()
+predictions = model.predict(X)
+print ('Accuracy: %d' % float((np.dot(Y,predictions.T) + np.dot(1-Y,1-predictions.T))/float(Y.size)*100) + '%')
